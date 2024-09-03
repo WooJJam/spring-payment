@@ -1,0 +1,59 @@
+<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script
+        src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"
+></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script th:inline="javascript">
+
+    var storeId = [[${storeId}]];
+    var channelKey = [[${channelKey}]];
+    var paymentId = [[${paymentId}]];
+    async function payment() {
+        const response = await PortOne.requestPayment({
+            // Store ID 설정
+            storeId: storeId,
+            // 채널 키 설정
+            channelKey: channelKey,
+            paymentId: paymentId,
+            orderName: "나이키 와플 트레이너 2 SD",
+            totalAmount: 100,
+            currency: "CURRENCY_KRW",
+            payMethod: "CARD",
+        });
+        const notified = await axios({
+            url: "/payment/complete",
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            data: {
+                txId: response.txId,
+                paymentId: response.paymentId
+            },
+        });
+        console.log(notified);
+    }
+
+    async function notify() {
+        const notified = await axios({
+            url: "/payment/complete",
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            data: {
+                txId: "testTxId",
+                paymentId: paymentId
+            },
+        });
+        console.log(paymentId);
+        console.log(channelKey);
+        console.log(storeId);
+    }
+
+</script>
+
+<body>
+    <button onclick="notify()">결제</button>
+</body>
