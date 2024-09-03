@@ -1,0 +1,10 @@
+spring:
+  profiles:
+    active: dev
+
+payment:
+  nice:
+    store:
+      id: ${payment.nice.store.id}
+  channel:
+    key: ${payment.channel.key}
