@@ -20,21 +20,11 @@
             // 채널 키 설정
             channelKey: channelKey,
             paymentId: paymentId,
-            orderName: "나이키 와플 트레이너 2 SD",
+            orderName: "우재민의 싸인 1장",
             totalAmount: 100,
             currency: "CURRENCY_KRW",
             payMethod: "CARD",
         });
-        const notified = await axios({
-            url: "/payment/complete",
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            data: {
-                txId: response.txId,
-                paymentId: response.paymentId
-            },
-        });
-        console.log(notified);
     }
 
     async function notify() {
@@ -55,5 +45,5 @@
 </script>
 
 <body>
-    <button onclick="notify()">결제</button>
+    <button onclick="payment()">결제</button>
 </body>

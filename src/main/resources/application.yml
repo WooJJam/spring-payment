@@ -1,10 +1,38 @@
 spring:
   profiles:
     active: dev
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+        dialect: org.hibernate.dialect.MySQLDialect
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: create
+  sql:
+    init:
+      mode: always
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
 
 payment:
+  id: ${PAYMENT_ID}
   nice:
     store:
-      id: ${payment.nice.store.id}
+      id: ${NICE_PAYMENT_STORE_ID}
   channel:
-    key: ${payment.channel.key}
+    key: ${PAYMENT_CHANNEL_KEY}
+  secret:
+    key: ${PORT_ONE_SECRET_KEY}
+
+logging:
+  level:
+    dalliza.sponjy: debug
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+

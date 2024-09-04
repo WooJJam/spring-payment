@@ -1,5 +1,6 @@
 package com.woojjam.payment;
 
+
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
@@ -34,10 +36,12 @@ public class PaymentController {
 	@Value("${payment.secret.key}")
 	private String secretKey;
 
-	@Value("${payment.id}")
-	private String paymentId;
+	// @Value("${payment.id}")
+	// private String paymentId;
 
 	private final RestTemplate restTemplate;
+	private final PaymentApiClient paymentApiClient;
+	private final PaymentReader paymentReader;
 
 
 	@GetMapping
@@ -68,7 +72,7 @@ public class PaymentController {
 
 	@ResponseBody
 	@GetMapping("/info")
-	public Object getPaymentInfo() {
+	public Object getPaymentInfo(@RequestParam("paymentId") String paymentId) {
 		// TODO: 결제 정보 조회 API 호출
 
 		HttpHeaders headers = new HttpHeaders();
@@ -91,13 +95,31 @@ public class PaymentController {
 	 * @description : 결제 완료 V2
 	 * Web-hook을 이용하여 안전성을 향상시킴
 	 * Port-one 으로 부터 요청을 받기 때문에 클라이언트에 의존하지 않아도 됨
-	 * Web-hook을 사용할 경우 클라이언트는 Polling하지 있기 때문에 최종 결과를 클라이언트에게 전달해야함
+	 * Web-hook을 사용할 경우 클라이언트는 Polling 하고 있지 않기 때문에 최종 결과를 클라이언트에게 전달해야함
+	 * Todo: SSE를 통해 서버는 클라이언트에게 결제 알림을 발신하여야 합니다.
 	 */
 	@ResponseBody
 	@PostMapping("/web-hooks")
-	public PaymentWebhookEvent webhooks(@RequestBody PaymentWebhookEvent paymentWebhookEvent) {
-        log.info("Payments Complete: webhook");
-		return paymentWebhookEvent;
+	public void webhooks(@RequestBody PaymentWebhookEvent paymentWebhookEvent) {
+		String paymentId = paymentWebhookEvent.getData().getPaymentId();
+		String type = paymentWebhookEvent.getType();
+		if (type.equals("Transaction.Paid")) {
+			log.info("결제 완료: paymentId = {}", paymentId);
+
+			PaymentRes paymentRes = paymentApiClient.readPaymentComplete(secretKey, paymentId);
+
+			Payment payment = paymentReader.findById(2L);
+
+			if (payment.getPrice() == paymentRes.getAmount().getTotal()) {
+				log.info("결제가 성공적으로 완료되었습니다.");
+				return;
+			}
+
+			log.info("결제 정보가 일치하지 않습니다. 환불 처리를 시작합니다. paymentId = {}", paymentId);
+			String refundData = paymentApiClient.refundAllPrice(secretKey, paymentId);
+
+			log.info("환불 완료 = {}", refundData);
+		}
     }
 
 }
