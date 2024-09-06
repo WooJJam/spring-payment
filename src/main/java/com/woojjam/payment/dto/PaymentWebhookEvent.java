@@ -1,4 +1,6 @@
-package com.woojjam.payment;
+package com.woojjam.payment.dto;
+
+import com.woojjam.payment.dto.PaymentData;
 
 import lombok.Getter;
 import lombok.ToString;

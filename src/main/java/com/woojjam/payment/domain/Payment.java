@@ -1,4 +1,4 @@
-package com.woojjam.payment;
+package com.woojjam.payment.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

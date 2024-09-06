@@ -1,4 +1,4 @@
-package com.woojjam.payment;
+package com.woojjam.payment.dto;
 
 import lombok.Getter;
 import lombok.Setter;

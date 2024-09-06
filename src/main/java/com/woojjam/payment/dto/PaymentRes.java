@@ -1,4 +1,4 @@
-package com.woojjam.payment;
+package com.woojjam.payment.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -8,24 +8,15 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Getter
-@Setter
 @ToString
 public class PaymentRes {
 
 	private String id;
-
 	private String requestedAt;
-
-	@JsonProperty("orderName")
 	private String orderName;
-
 	private Amount amount;
 
-}
-
-@Getter
-@Setter
-@ToString
-class Amount {
-	int total;
+	public record Amount (
+		int total
+	) {}
 }

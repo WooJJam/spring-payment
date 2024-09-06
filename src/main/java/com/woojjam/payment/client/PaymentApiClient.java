@@ -1,4 +1,4 @@
-package com.woojjam.payment;
+package com.woojjam.payment.client;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,9 +10,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.woojjam.payment.dto.PaymentRes;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class PaymentApiClient {
@@ -46,12 +49,16 @@ public class PaymentApiClient {
 		body.put("reason", "결제 금액이 일치하지 않음");
 		HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
 
-		return restTemplate.exchange(
-			"https://api.portone.io/payments/" + paymentId +"/cancel",
-			HttpMethod.POST,
-			request,
-			String.class
-		).getBody();
-
+		try {
+			return restTemplate.exchange(
+				"https://api.portone.io/payments/" + paymentId + "/cancel",
+				HttpMethod.POST,
+				request,
+				String.class
+			).getBody();
+		} catch (Exception e) {
+			log.info("이미 환불된 결제");
+			throw new RuntimeException("Payment refund error", e);
+		}
 	}
 }

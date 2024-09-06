@@ -1,4 +1,4 @@
-package com.woojjam.payment;
+package com.woojjam.payment.controller;
 
 
 import java.util.UUID;
@@ -18,12 +18,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
+import com.woojjam.payment.client.PaymentApiClient;
+import com.woojjam.payment.sevice.PaymentClientService;
+import com.woojjam.payment.sevice.PaymentReadService;
+import com.woojjam.payment.dto.PaymentReq;
+import com.woojjam.payment.usecase.PaymentUseCase;
+import com.woojjam.payment.dto.PaymentWebhookEvent;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
-@RequestMapping("/payment")
+@RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 
@@ -41,7 +48,9 @@ public class PaymentController {
 
 	private final RestTemplate restTemplate;
 	private final PaymentApiClient paymentApiClient;
-	private final PaymentReader paymentReader;
+	private final PaymentReadService paymentReadService;
+	private final PaymentClientService paymentClientService;
+	private final PaymentUseCase paymentUseCase;
 
 
 	@GetMapping
@@ -99,27 +108,14 @@ public class PaymentController {
 	 * Todo: SSE를 통해 서버는 클라이언트에게 결제 알림을 발신하여야 합니다.
 	 */
 	@ResponseBody
-	@PostMapping("/web-hooks")
-	public void webhooks(@RequestBody PaymentWebhookEvent paymentWebhookEvent) {
+	@PostMapping("/pay")
+	public void pay(@RequestBody PaymentWebhookEvent paymentWebhookEvent) {
 		String paymentId = paymentWebhookEvent.getData().getPaymentId();
 		String type = paymentWebhookEvent.getType();
-		if (type.equals("Transaction.Paid")) {
-			log.info("결제 완료: paymentId = {}", paymentId);
+		log.debug(paymentWebhookEvent.toString());
 
-			PaymentRes paymentRes = paymentApiClient.readPaymentComplete(secretKey, paymentId);
+		paymentUseCase.pay(paymentId, type);
 
-			Payment payment = paymentReader.findById(2L);
-
-			if (payment.getPrice() == paymentRes.getAmount().getTotal()) {
-				log.info("결제가 성공적으로 완료되었습니다.");
-				return;
-			}
-
-			log.info("결제 정보가 일치하지 않습니다. 환불 처리를 시작합니다. paymentId = {}", paymentId);
-			String refundData = paymentApiClient.refundAllPrice(secretKey, paymentId);
-
-			log.info("환불 완료 = {}", refundData);
-		}
     }
 
 }
